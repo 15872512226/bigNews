@@ -20,7 +20,7 @@
         <a href="#" class="logo"><img src="images/logo02.png" alt="logo"></a>
         <div class="user_info">
             <img src="images/2.jpg" alt="person">
-            <span>欢迎&nbsp;&nbsp;李思思</span>
+            <span>欢迎&nbsp;&nbsp;<i style="font-style: normal;"></i></span>
             <b>管理员</b>
         </div>
         <!-- 左侧导航栏 -->
@@ -54,5 +54,75 @@
 
         </div>
     </div>
+
+    <script>
+        // 入口函数
+        $(function() {
+            // 一：进入页面 显示登录的管理员信息
+
+            // 1.0 原生js 发送ajax
+            // a,创建xml对象
+            //var xhr = new XMLHttpRequest();
+            // b,调用open()方法
+            //xhr.open('get','http://localhost:8080/api/v1/admin/user/info');
+            // c,设置请求头
+            //xhr.setRequestHeader('Authorization','eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiYWRtaW4iLCJleHAiOjE1Njc5NTc3MDIsImlhdCI6MTU2Nzk1NTkwMn0.CEc7tam-M9JBKNFNoCnOK9SZ5zqEeYTZSxNyYWwHIZGbHwtp82UCG462-h8CXZfHTlKU2iFtor62G-bIbSsgH5zDa5rCgVvs6FYLV6A69Cih3lAOM2icrBeCzFlIXqt2v7TP2Z4PQyzrzr2Q8codyluIaCRjs9UK1mwxi5PFvuQ');
+            // d.请求成功后执行回调函数
+            // xhr.onload = function() {
+            //     console.log(xhr.respon);
+            // };
+            // e.发送send()请求
+            // xhr.send();
+
+
+            // 1.1 发送ajax
+            $.ajax({
+                type: 'get',
+                url: 'http://localhost:8080/api/v1/admin/user/info',
+                // 接口认证token  必须在请求头中使用 Authorization 字段提供 token 令牌
+                // headers: {
+                //     Authorization: localStorage.getItem('token')
+                // },
+                success: function(backData) {
+                    // console.log(backData);
+                    // 请求成功 把返回管理员参数显示在页面
+                    $('.user_info img').attr('src', backData.data.userPic);
+                    $('.user_info span i').text(backData.data.nickname);
+                    $('.user_center_link img').attr('src', backData.data.userPic);
+                }
+            });
+
+            // ****  每次发送ajax都要 认证token  为了方便使用 写一个全局的放在jQuery.js里面 每次发送调用
+            //全局的 $.ajaxSetup() : 为所有的AJAX请求设置默认值
+            //beforeSend(xhr):	发送请求前运行的函数
+            // $.ajaxSetup({
+            //     //在发送ajax之前，给所有的请求都设置请求头（从localStorage中读取token）
+            //     beforeSend: function(xhr) {
+            //         xhr.setRequestHeader("Authorization", localStorage.getItem('token'));
+            //     },
+            //     // 请求错误时 进行拦截  并返回登录页面
+            //     error: function(xhr, status, error) {
+            //         if (error == 'Forbidden') { //用户未登录
+            //             alert('请先登录！');
+            //             window.location.href = "./login.html";
+            //         }
+
+            //     }
+            // })
+
+            // 二：点击退出按钮  退出登录
+            $('.logout').on('click', function(e) {
+                e.preventDefault();
+                if (confirm('确定退出登录吗？')) {
+                    // 删除token
+                    localStorage.removeItem('token');
+                    // 返回登录页
+                    window.location.href = './login.html';
+                }
+            })
+
+        })
+    </script>
 </body>
+
 </html>

@@ -85,6 +85,8 @@
                         password: password
                     },
                     success: function(backData) {
+                        // 把返回的token保存起来
+                        localStorage.setItem('token', backData.token);
                         console.log(backData);
                         // 请求成功 弹出模态框
                         $('.modal-body').text(backData.msg);
