@@ -44,7 +44,7 @@
                     <label for="inputPassword3" class="col-sm-2 control-label">用户图标：</label>
                     <div class="col-sm-10">
                         <img src="images/2.jpg" alt="" class="user_pic">
-                        <input style="display: block" name="userPic" type="file" id="exampleInputFile">
+                        <input style="display: none" name="userPic" type="file" id="exampleInputFile">
                         <!-- 给label标签的for属性赋值,值是input标签的id,那这样的话点击label就相当于点击了input -->
                         <br>
                         <label for="exampleInputFile">
@@ -56,8 +56,7 @@
                 <div class="form-group">
                     <label for="inputEmail4" class="col-sm-2 control-label">密码：</label>
                     <div class="col-sm-4">
-                        <input type="password" name="password" class="form-control password" id="inputEmail4"
-                            value="12345678">
+                        <input type="password" name="password" class="form-control password" id="inputEmail4" value="123456">
                     </div>
                 </div>
                 <div class="form-group">
@@ -68,6 +67,76 @@
             </form>
         </div>
     </div>
+    <script src="./libs/http.js"></script>
+    <script>
+        // 入口函数
+        $(function() {
+            // 1, 打开页面发送ajax请求 显示用户信息
+            $.ajax({
+                type: 'get',
+                url: BigNew.user_detail,
+                success: function(backData) {
+                    // console.log(backData);
+                    if (backData.code == 200) {
+                        // 遍历 data 显示对应的信息
+                        for (var key in backData.data) {
+                            $('.' + key).val(backData.data[key]);
+                        };
+                        // 显示图片
+                        $('.user_pic').attr('src', backData.data.userPic);
+                    }
+                }
+            })
+
+            // 2，个人中心编辑信息 发送ajax请求  并更新index页面
+
+            $('.btn-edit').on('click', function(e) {
+                e.preventDefault();
+                // 使用formdata获取用户输入的信息  
+                var fd = new FormData($('#form')[0]); //dom元素
+                // 发送ajax请求 
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.user_edit,
+                    data: fd,
+                    contentType: false,
+                    processData: false,
+                    success: function(backData) {
+                        // console.log(backData);
+                        if (backData.code == 200) {
+                            alert('修改成功');
+                            // parent.window.location.reload();
+                            // 发送ajax请求 获取修改后的用户信息 更改index页面上显示
+                            $.ajax({
+                                type: 'get',
+                                url: BigNew.user_info,
+                                success: function(backData) {
+                                    // console.log(backData);
+                                    if (backData.code == 200) {
+                                        parent.$(".user_info>span>i").text(backData.data.nickname);
+                                        parent.$(".user_info>img").attr("src", backData.data.userPic);
+                                        parent.$(".user_center_link>img").attr("src", backData.data.userPic);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                })
+            })
+
+
+            // 3，上次照片  图片预览
+            // input  的值改变事件  选择图片会对应显示
+            $('#exampleInputFile').on('change', function() {
+                var imgs = this.files[0]; //获取文件
+                var url = URL.createObjectURL(imgs); //获取图片路径
+                // 更改路径 显示选中的图片
+                $('.user_pic').attr('src', url);
+            })
+
+
+        })
+    </script>
 </body>
 
 </html>

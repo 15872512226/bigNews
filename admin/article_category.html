@@ -43,13 +43,198 @@
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-center">
-                            <a href="javascript:void(0)" class="btn btn-success" id="xinzengfenlei" data-toggle="modal"
-                                data-target="#myModal">新增分类</a>
+                            <a href="javascript:void(0)" class="btn btn-success" id="xinzengfenlei" data-toggle="modal" data-target="#myModal">新增分类</a>
                         </td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
+
+
+    <!-- 使用模态框 做新增 编辑 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">New message</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <!-- 隐藏域 type="hidden"    保持当前文章对应 id -->
+                        <input type="hidden" id="category_id" name="">
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">文章类别:</label>
+                            <input type="text" class="form-control" id="recipient-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">文章名称:</label>
+                            <input type="text" class="form-control" id="message-text"></input>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="quxiao" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="btn-add">Send message</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 准备一个模板 -->
+    <script id="category_temp" type="text/html">
+        {{each data v}}
+        <tr>
+            <td>{{v.name}}</td>
+            <td>{{v.slug}}</td>
+            <td class="text-center">
+                <a href="javascript:void(0)" data-id="{{v.id}}" data-toggle="modal" data-target="#myModal" class=" btn btn-info btn-xs">编辑</a>
+                <a href="javascript:void(0)" data-id="{{v.id}}" class="btn btn-danger btn-xs btn-delete">删除</a>
+            </td>
+        </tr>
+        {{/each}}
+    </script>
+
+    <script src="./libs/http.js"></script>
+    <script>
+        $(function() {
+            // 1,进入页面发送ajax请求 获取文章类别信息  使用模板引擎渲染到页面
+            function category_ajax() {
+                $.ajax({
+                    type: 'get',
+                    url: BigNew.category_list,
+                    success: function(backData) {
+                        // console.log(backData);
+                        if (backData.code == 200) {
+                            // 使用模板引擎
+                            var resHtml = template('category_temp', backData);
+                            $('tbody').html(resHtml);
+                        }
+                    }
+                });
+            }
+            category_ajax();
+
+            // 二:判断 是 新增/编辑 弹出的模态框
+            // show.bs.modal  方法 模态框显示的时候调用
+            // e.relatedTarget 触发事件源 DOM元素
+            $('#myModal').on('show.bs.modal', function(e) {
+                // 新增分类
+                if (e.relatedTarget === $('#xinzengfenlei')[0]) {
+                    $('#exampleModalLabel').text('新增分类');
+                    $('#btn-add').text('新增').addClass('btn-primary').removeClass('btn-success');
+                } else { // 编辑分类
+                    $('#exampleModalLabel').text('编辑分类');
+                    $('#btn-add').text('编辑').addClass('btn-success').removeClass('btn-primary');
+
+                    // 模态框为编辑的时候 需要显示 文章信息
+                    $('#category_id').val($(e.relatedTarget).attr('data-id')); //文章id
+                    $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text()); //文章类别
+                    $('#message-text').val($(e.relatedTarget).parent().prev().text()); //文章名字
+                }
+            })
+
+            // 三 ：给模态框中的按钮 设置点击事件
+            $('#btn-add').on('click', function() {
+                // 1,判断是 新增 还是编辑
+                if ($(this).hasClass('btn-primary')) {
+                    // 新增
+                    // 2.1 获取用户输入的信息
+                    var addname = $('#recipient-name').val().trim(); //文章类别
+                    var addtext = $('#message-text').val().trim(); //文章名称
+                    // 2.2 发送ajax请求
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_add,
+                        data: {
+                            name: addname,
+                            slug: addtext
+                        },
+                        success: function(backData) {
+                            // console.log(backData);
+                            if (backData.code == 201) {
+                                alert('新增成功！');
+                                // 隐藏模态框
+                                $('#myModal').modal('hide');
+                                // 清空文本;
+                                $('#recipient-name').val("");
+                                $('#message-text').val("");
+
+                                category_ajax();
+                            }
+                        }
+                    })
+                } else {
+                    // 编辑
+                    // 获取 模态框中 用户编辑后 的文章信息
+                    var category_id = $('#category_id').val().trim(); // 获取id
+                    var category_name = $('#recipient-name').val().trim(); // 获取类别
+                    var category_text = $('#message-text').val().trim(); // 获取名称
+
+                    // 发送ajax请求 修改文章 类别  信息
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_edit,
+                        data: {
+                            id: category_id,
+                            name: category_name,
+                            slug: category_text
+                        },
+                        success: function(backData) {
+                            // console.log(backData);
+                            // 修改成功  隐藏模态框  刷新文章页面
+                            if (backData.code == 200) {
+                                // 隐藏模态框
+                                $('#myModal').modal('hide');
+                                // 清空文本;
+                                $('#recipient-name').val("");
+                                $('#message-text').val("");
+
+                                category_ajax();
+                            }
+                        }
+                    })
+                }
+            });
+
+
+            // 四： 模态框中 点击 取消按钮  重置模态框属性
+            $('#quxiao').on('click', function() {
+                //reset() 方法可把表单中的元素重置为它们的默认值。
+                $("#myModal form")[0].reset();
+            })
+
+
+            // 五：点击删除按钮  删除对应文章类别
+            // 因为是使用引擎模板生成的  需要使用委托注册
+            $('tbody').on('click', '.btn-delete', function() {
+                if (confirm('你确定要删除吗？')) {
+                    // 获取当前id 
+                    var del_id = $(this).attr('data-id');
+                    // 发送ajax请求 删除对应文章数据
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_delete,
+                        data: {
+                            id: del_id
+                        },
+                        success: function(backData) {
+                            // console.log(backData);
+                            if (backData.code == 204) {
+                                alert('删除成功！');
+
+                                category_ajax(); //刷新页面
+                            }
+                        }
+                    })
+                }
+            })
+
+
+        })
+    </script>
+
+</html>
 
 </html>
