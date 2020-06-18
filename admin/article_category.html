@@ -143,6 +143,7 @@
                     // 2.1 获取用户输入的信息
                     var addname = $('#recipient-name').val().trim(); //文章类别
                     var addtext = $('#message-text').val().trim(); //文章名称
+
                     // 2.2 发送ajax请求
                     $.ajax({
                         type: 'post',
@@ -152,7 +153,7 @@
                             slug: addtext
                         },
                         success: function(backData) {
-                            // console.log(backData);
+                            console.log(backData);
                             if (backData.code == 201) {
                                 alert('新增成功！');
                                 // 隐藏模态框

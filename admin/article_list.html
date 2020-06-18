@@ -13,6 +13,8 @@
     <script src="./libs/jquery-1.12.4.min.js"></script>
     <!-- 引入模板引擎js文件 -->
     <script src="./libs/template-web.js"></script>
+    <!-- 引入页码模板js文件 -->
+    <script src="./libs/jquery.twbsPagination.js"></script>
 </head>
 
 <body>
@@ -69,9 +71,167 @@
                 </tbody>
             </table>
             <div class="row text-center">
+
+                <ul class="pagination" id="pagination"></ul>
+                <p>没有文章信息。。。</p>
             </div>
         </div>
     </div>
+
+    <!-- 准备 文章分类 模板 -->
+    <script id="cate_list" type="text/html">
+        <option value="">所有分类</option>
+        {{each data v}}
+        <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+    </script>
+
+    <!-- 准备模板引擎 显示文章列表 -->
+    <script id="article_list" type="text/html">
+        {{each data.data v}}
+        <tr>
+            <td>{{v.title}}</td>
+            <td>{{v.author}}</td>
+            <td>{{v.category}}</td>
+            <td class="text-center">{{v.date}}</td>
+            <td class="text-center">{{v.state}}</td>
+            <td class="text-center">
+                <a href="article_edit.html" data_id="{{v.id}}" class="btn btn-default btn-xs">编辑</a>
+                <a href="javascript:void(0);" data_id="{{v.id}}" class="btn btn-danger btn-xs delete">删除</a>
+            </td>
+        </tr>
+        {{/each}}
+    </script>
+
+    <script src="./libs/http.js"></script>
+    <script>
+        // 入口函数
+        $(function() {
+            // 一： 进入页面发送ajax请求 获取所有文章类别 并显示在下拉框
+            $.ajax({
+                type: 'get',
+                url: BigNew.category_list,
+                success: function(backData) {
+                    // console.log(backData);
+                    if (backData.code == 200) {
+                        // 使用模板引擎
+                        var resHtml01 = template('cate_list', backData);
+                        $('#selCategory').html(resHtml01);
+                    }
+                }
+            });
+
+            // 声明一个变量 保存当前页码
+            var article_page = 1;
+            // 二： 打开页面显示默认所有文章  发送ajax请求获取所有文章 使用模板引擎渲染到页面
+            function getData_ajax(my_page, calldata) {
+                $.ajax({
+                    type: 'get',
+                    url: BigNew.article_query,
+                    data: {
+                        type: $('#selCategory').val().trim(),
+                        state: $('#selStatus').val().trim(),
+                        page: my_page,
+                        perpage: 4
+                    },
+                    success: function(backData) {
+                        console.log(backData);
+                        if (backData.code == 200) {
+                            // 使用模板引擎 并渲染到页面
+                            var resHtml02 = template('article_list', backData);
+                            $('tbody').html(resHtml02);
+                            // 如果当前页码大于0页 而且 函数不为空
+                            if (backData.data.totalPage != 0 && calldata != null) {
+                                calldata(backData); //调用回调函数,把返回来的数据backData作为实参传递.
+                                $('#pagination').show();
+                                $('#pagination').next().hide(); //
+                                // 如果返回的页面数等于点前页面-1 而且 当前页码长度为0 
+                            } else if (backData.data.totalPage == my_page - 1 && backData.data.data.length == 0) {
+                                my_page -= 1;
+                                //调用changeTotalPages 这个方法 根据新的总页数 重新生成分页结构.
+                                $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, my_page);
+                                // 如果没有内容
+                            } else if (backData.data.data.length == 0) {
+                                $('#pagination').hide();
+                                $('#pagination').next().show(); //
+                            }
+                        }
+                    }
+                });
+            };
+            // 显示文章页面
+            getData_ajax(1, function(backData) {
+                // 显示页码
+                $('#pagination').twbsPagination({
+                    first: "首页",
+                    prev: "上一页",
+                    next: "下一页",
+                    last: "尾页",
+                    totalPages: backData.data.totalPage,
+                    visiblePages: 5,
+                    // page 当前点击页码
+                    onPageClick: function(event, page) {
+                        // console.log(event, page);
+                        // 获取当前点击页码
+                        article_page = page;
+                        // 刷新页面
+                        getData_ajax(article_page, null);
+
+                    }
+                });
+            });
+
+
+
+            // 三： 点击筛选按钮 显示对应的文章信息
+            $('#btnSearch').on('click', function(e) {
+                // 阻止默认跳转
+                e.preventDefault();
+                // 显示筛选之后的文章数量
+                getData_ajax(1, function(backData) {
+                    // 用 changeTotalPages 方法  显示改变后的总页面     1：显示页码1的页面
+                    $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
+                });
+
+            })
+
+
+            // 四：删除文章
+            $('tbody').on('click', '.delete', function() {
+                if (confirm('你确定删除吗?')) {
+                    var de_id = $(this).attr('data_id'); //获取当前页码id
+                    // 发送ajax请求
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.article_delete,
+                        data: {
+                            id: de_id
+                        },
+                        success: function(backData) {
+                            console.log(backData);
+                            if (backData.code == 204) {
+                                alert('删除成功！');
+                                // 发送ajax 获取当前页数据
+                                getData_ajax(article_page, function(backData) {
+                                    //调用changeTotalPages 这个方法 根据新的总页数 重新生成分页结构.
+                                    $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, article_page);
+
+                                })
+                            }
+                        }
+                    })
+                }
+            });
+
+
+
+
+
+
+
+        })
+    </script>
+
 </body>
 
 </html>
