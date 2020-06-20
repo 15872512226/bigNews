@@ -140,20 +140,23 @@
                             // 使用模板引擎 并渲染到页面
                             var resHtml02 = template('article_list', backData);
                             $('tbody').html(resHtml02);
+
                             // 如果当前页码大于0页 而且 函数不为空
-                            if (backData.data.totalPage != 0 && calldata != null) {
+                            if (backData.data.data.length != 0 && calldata != null) {
                                 calldata(backData); //调用回调函数,把返回来的数据backData作为实参传递.
                                 $('#pagination').show();
                                 $('#pagination').next().hide(); //
-                                // 如果返回的页面数等于点前页面-1 而且 当前页码长度为0 
-                            } else if (backData.data.totalPage == my_page - 1 && backData.data.data.length == 0) {
+                                // 如果没有内容
+                            } else if (backData.data.data.length == 0 && my_page == 1) {
+                                $('#pagination').hide();
+                                $('#pagination').next().show(); //
+                            } // 如果返回的页面数等于点前页面-1 而且 当前页码长度为0 
+                            else if (backData.data.totalPage == my_page - 1 && backData.data.data.length == 0) {
                                 my_page -= 1;
                                 //调用changeTotalPages 这个方法 根据新的总页数 重新生成分页结构.
                                 $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, my_page);
-                                // 如果没有内容
-                            } else if (backData.data.data.length == 0) {
-                                $('#pagination').hide();
-                                $('#pagination').next().show(); //
+
+
                             }
                         }
                     }
@@ -175,7 +178,7 @@
                         // 获取当前点击页码
                         article_page = page;
                         // 刷新页面
-                        getData_ajax(article_page, null);
+                        getData_ajax(page, null);
 
                     }
                 });
@@ -224,7 +227,10 @@
             });
 
 
-
+            // 五：新增文章
+            $('#release_btn').on('click', function() {
+                parent.$('ul.level02 li:eq(1)').click();
+            })
 
 
 
