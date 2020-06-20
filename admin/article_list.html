@@ -97,7 +97,7 @@
             <td class="text-center">{{v.state}}</td>
             <td class="text-center">
                 <a href="article_edit.html?id={{v.id}}" data_id="{{v.id}}" class="btn btn-default btn-xs">编辑</a>
-                <a href="javascript:void(0);" data_id="{{v.id}}" class="btn btn-danger btn-xs delete">删除</a>
+                <a href="javascript:void(0);" data_id="{{v.id}}" class="btn btn-danger btn-xs btn_delete">删除</a>
             </td>
         </tr>
         {{/each}}
@@ -233,7 +233,29 @@
             })
 
 
+            // 六：删除文章
+            $('tbody').on('click', '.btn_delete', function() {
+                if (confirm('你确定要删除吗？')) {
+                    // 获取文章id
+                    var delete_id = $(this).attr('data_id');
+                    // 发送ajax请求
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.article_delete,
+                        data: {
+                            id: delete_id
+                        },
+                        success: function(backData) {
+                            if (backData.code == 204) {
+                                alert('删除成功。。。');
+                                window.location.reload();
+                            }
 
+                        }
+                    })
+                }
+
+            })
 
         })
     </script>
