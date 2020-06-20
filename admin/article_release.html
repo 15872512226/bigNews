@@ -61,7 +61,7 @@
                     <!-- jedate日期插件 -->
                     <div class="jeinpbox col-sm-4">
                         <input type="text" name="date" class="jeinput" id="testico" placeholder="YYYY-MM-DD">
-                        <div class="icons jebtns" onclick="jeDate('#testico',{trigger:false,format: 'YYYY-MM-DD'})"></div>
+                        <div class="icons jebtns" onclick="jeDate('#testico',{trigger:false,format: 'YYYY-MM-DD',zIndex: 99999})"></div>
                     </div>
 
                 </div>
@@ -106,8 +106,9 @@
                 theme: {
                     bgcolor: "#00A1CB",
                     color: "#ffffff",
-                    pnColor: "#00CCFF"
+                    pnColor: "#00CCFF",
                 },
+                zIndex: 99999,
                 format: "YYYY-MM-DD ",
                 isinitVal: true,
             });

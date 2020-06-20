@@ -96,7 +96,7 @@
             <td class="text-center">{{v.date}}</td>
             <td class="text-center">{{v.state}}</td>
             <td class="text-center">
-                <a href="article_edit.html" data_id="{{v.id}}" class="btn btn-default btn-xs">编辑</a>
+                <a href="article_edit.html?id={{v.id}}" data_id="{{v.id}}" class="btn btn-default btn-xs">编辑</a>
                 <a href="javascript:void(0);" data_id="{{v.id}}" class="btn btn-danger btn-xs delete">删除</a>
             </td>
         </tr>
@@ -135,7 +135,7 @@
                         perpage: 4
                     },
                     success: function(backData) {
-                        console.log(backData);
+                        // console.log(backData);
                         if (backData.code == 200) {
                             // 使用模板引擎 并渲染到页面
                             var resHtml02 = template('article_list', backData);
@@ -211,7 +211,7 @@
                             id: de_id
                         },
                         success: function(backData) {
-                            console.log(backData);
+                            // console.log(backData);
                             if (backData.code == 204) {
                                 alert('删除成功！');
                                 // 发送ajax 获取当前页数据
