@@ -124,6 +124,15 @@
             });
 
 
+            // 设置图片预览   input值改变事件
+            $('#inputCover').on('change', function() {
+                var files = this.files[0];
+                var url = URL.createObjectURL(files); //获取图片路径
+                // 设置图片预览路径
+                $('.article_cover').attr('src', url);
+            })
+
+
             //四： 通过传递的id获取文章信息
             var article_id = window.location.search.split('=')[1];
             // 发送ajax请求 获取文章信息
@@ -134,7 +143,7 @@
                     id: article_id
                 },
                 success: function(backData) {
-                    console.log(backData);
+                    console.log(backData)
                     if (backData.code == 200) {
                         // 请求成功 把对应文章信息显示在页面
                         $('#article_list_id').val(backData.data.id); //文章id
@@ -166,6 +175,7 @@
                     processData: false,
                     success: function(backData) {
                         // console.log(backData);
+
                         if (backData.code == 200) {
                             alert(backData.msg);
                             window.location.href = './article_list.html';
